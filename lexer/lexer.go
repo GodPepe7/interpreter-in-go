@@ -62,6 +62,14 @@ func isDigit(ch byte) bool {
 	return '0' <= ch && ch <= '9'
 }
 
+func (l *Lexer) peekChar() byte {
+	if l.readPosition >= len(l.input) {
+		return 0
+	} else {
+		return l.input[l.readPosition]
+	}
+}
+
 func (lex *Lexer) NextToken() token.Token {
 	var tok token.Token
 
@@ -69,13 +77,27 @@ func (lex *Lexer) NextToken() token.Token {
 
 	switch lex.ch {
 	case '=':
-		tok = newToken(token.ASSIGN, lex.ch)
+		if lex.peekChar() == '=' {
+			ch := lex.ch
+			lex.readChar()
+			literal := string(ch) + string(lex.ch)
+			tok = token.Token{Type: token.EQ, Literal: literal}
+		} else {
+			tok = newToken(token.ASSIGN, lex.ch)
+		}
 	case '+':
 		tok = newToken(token.PLUS, lex.ch)
 	case '-':
 		tok = newToken(token.MINUS, lex.ch)
 	case '!':
-		tok = newToken(token.BANG, lex.ch)
+		if lex.peekChar() == '=' {
+			ch := lex.ch
+			lex.readChar()
+			literal := string(ch) + string(lex.ch)
+			tok = token.Token{Type: token.NOT_EQ, Literal: literal}
+		} else {
+			tok = newToken(token.BANG, lex.ch)
+		}
 	case '/':
 		tok = newToken(token.SLASH, lex.ch)
 	case '*':
